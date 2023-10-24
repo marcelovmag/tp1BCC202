@@ -5,14 +5,14 @@
 
 typedef struct grafoPon GrafoPon;
 
-void alocarGrafo();
+void alocarGrafo(GrafoPon*);
 
-void desalocarGrafo();
+void desalocarGrafo(GrafoPon*);
 
-void leGrafo();
+void leGrafo(GrafoPon*);
 
-void encontraCaminho();
+void encontraCaminho(GrafoPon*);
 
-void imprimeCaminho();
+void imprimeCaminho(GrafoPon*);
 
 #endif /* grafoPonderado_tad_h */
