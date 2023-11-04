@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <limits.h>
-#include "grafoPonderado.h"
+#include "grafoPonderado_tad.h"
 
 typedef struct grafoPon {
 
@@ -11,19 +11,21 @@ typedef struct grafoPon {
     int* caminho; // Vetor que armazena o melhor caminho pro dado grafo, uma vez que calculado
     int* caminhoTemp; // Vetor que armazena os caminhos em tempo de teste
     double distancia;
+    int n;
 
 } GrafoPon;
 
 void alocarGrafo(GrafoPon* grafo) {
 
     // Aloca espaco suficiente para o vetor caminho, considerando que a primeira cidade (da qual se comeca) irá repetir
-    grafo-> caminho = (int*) malloc(sizeof(int) * grafo-> numCidade + 1);
+    grafo-> caminho = (int*) malloc(sizeof(int) * grafo-> numCidades + 1);
+    grafo-> caminhoTemp = (int*) malloc(sizeof(int) * grafo-> numCidades + 1);
     
     for (int i = 0; i < grafo-> numCidades; i++)
     {
-        grafo-> caminho[i] = i;
+        grafo-> caminhoTemp[i] = i;
     }
-    grafo-> caminho[grafo-> numCidades] = 0;
+    grafo-> caminhoTemp[grafo-> numCidades] = 0;
     
     grafo-> distancia = INT_MAX;
 
@@ -34,9 +36,9 @@ void alocarGrafo(GrafoPon* grafo) {
     j: cidade de destino
     matriz[i][j]: distancia entre essas 2 cidades
     */
-    grafo-> matrizAdjacencias = (float*) malloc(sizeof(float*) * grafo-> numCidade);
+    grafo-> matrizAdjacencias = (float**) malloc(sizeof(float*) * grafo-> numCidades);
 
-    for (int i = 0; i < grafo-> numCidade; i++)
+    for (int i = 0; i < grafo-> numCidades; i++)
     {
         grafo-> matrizAdjacencias[i] = (float*) malloc(sizeof(float));
     }
@@ -46,15 +48,12 @@ void alocarGrafo(GrafoPon* grafo) {
 void desalocarGrafo(GrafoPon* grafo) {
 
     // Libera matriz
-    for (int i = 0; i < n; i++)
+    for (int i = 0; i < grafo-> numCidades; i++)
     {
         free(grafo-> matrizAdjacencias[i]);
     }
 
     free(grafo-> matrizAdjacencias);
-
-    // Libera numCidades
-    free(grafo-> numCidades);
 
     // Libera vetor caminho
     free(grafo-> caminho);
@@ -69,21 +68,24 @@ void leGrafo(GrafoPon* grafo) {
 
     // Le e armazena o número de cidades
     scanf("%d", &(grafo-> numCidades));
+    grafo-> n = grafo->numCidades + 1;
+
+    alocarGrafo(grafo);
 
     // Le e armazena a distancia entre cada cidade, preenchendo a matriz "matrizAdjacencias" conforme o padrao descrito nos comentarios da funcao "alocaGrafo"
     for (int i = 0; i < pow(grafo-> numCidades, 2); i++)
     {
-        scanf("%d%d%f", &cidadeOrigem, cidadeDestino, distancia);
-        grafo-> matrizAdjacencias[cidadeOrigem, cidadeDestino] = distancia;
+        scanf("%d%d%f", &cidadeOrigem, &cidadeDestino, &distancia);
+        grafo-> matrizAdjacencias[cidadeOrigem][cidadeDestino] = distancia;
     }
     
 }
 
 // Funcao que calcula e retorna a distancia percorrida pra um dado caminho
-float calculaDistancia(int* caminho, float** matrizAdjacencias) {
+float calculaDistancia(int* caminho, float** matrizAdjacencias, int n) {
     float distancia = 0;
 
-    for (int i = 1; i < sizeof(caminho)/sizeof(int); i++)
+    for (int i = 1; i < n; i++)
     {
         if (!matrizAdjacencias[caminho[i-1]][caminho[i]])
             return INT_MAX;
@@ -108,14 +110,14 @@ void encontraCaminho(GrafoPon* grafo) {
     {
 
         // Se a distancia do caminho novo for menor que a menor calculada ate agora, substitui o caminho e distancia novos
-        if (calculaDistancia(grafo-> caminhoTemp, grafo-> matrizAdjacencias) < grafo-> distancia)
+        if (calculaDistancia(grafo-> caminhoTemp, grafo-> matrizAdjacencias, grafo-> n) < grafo-> distancia)
         {
-            for (int i = 0; i < sizeof(grafo->caminho)/sizeof(int); i++)
+            for (int i = 0; i < grafo-> n; i++)
             {
                 grafo-> caminho[i] = grafo-> caminhoTemp[i];
             }
 
-            grafo-> distancia = calculaDistancia(grafo-> caminho, grafo-> matrizAdjacencias);
+            grafo-> distancia = calculaDistancia(grafo-> caminho, grafo-> matrizAdjacencias, grafo-> n);
             
         }
         
@@ -135,11 +137,11 @@ void encontraCaminho(GrafoPon* grafo) {
 
         // Em caso de numCidades par, faz um swap de vetor[i] e vetor[numCidades - 1]
         if (grafo-> numCidades % 2 == 0)
-            swap(grafo-> caminhoTemp[i], grafo-> caminhoTemp[grafo-> numCidades]);
+            swap(&(grafo-> caminhoTemp), grafo-> caminhoTemp[i], grafo-> caminhoTemp[grafo-> numCidades]);
 
         // Em caso de numCidades impar, faz um swap de vetor[0] e vetor[numCidades - 1]
         else   
-            swap(grafo-> caminhoTemp[1], grafo-> caminhoTemp[grafo-> numCidades]);
+            swap(&(grafo-> caminhoTemp), grafo-> caminhoTemp[1], grafo-> caminhoTemp[grafo-> numCidades]);
 
         /*
         *   Essa lógica de ifs para numCidades impar e par garante que os swaps chamados ao fim de um for (voltando pra um for "maior"),
@@ -160,5 +162,5 @@ void imprimeCaminho(GrafoPon* grafo) {
     }
 
     // Calcula e imprime a distancia percorrida por esse menor caminho
-    printf("\n%lf\n", calculaDistancia(grafo-> caminho, grafo-> matrizAdjacencias));
+    printf("\n%lf\n", calculaDistancia(grafo-> caminho, grafo-> matrizAdjacencias, grafo->n));
 }

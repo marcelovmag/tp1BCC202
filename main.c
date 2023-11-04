@@ -1,10 +1,8 @@
-#include "grafoPonderado.h"
+#include "grafoPonderado_tad.h"
 
 int main() {
 
     GrafoPon grafo;
-
-    alocaGrafo(&grafo);
 
     leGrafo(&grafo);
 
@@ -12,7 +10,7 @@ int main() {
 
     imprimeCaminho(&grafo);
 
-    desalocaGrafo(&grafo);
+    desalocarGrafo(&grafo);
     
     return 0;
 }
